@@ -557,6 +557,50 @@ section h2 {
 
 .card-popular .btn-guardar { font-size: 0.8rem; padding: 0.4rem; }
 
+/* ── Campanita de notificaciones ─────────────────────────────────────────── */
+.btn-campana {
+    width:         38px;
+    height:        38px;
+    border-radius: 50%;
+    border:        1px solid var(--color-border);
+    background:    transparent;
+    color:         var(--color-muted);
+    font-size:     1.1rem;
+    cursor:        pointer;
+    display:       flex;
+    align-items:   center;
+    justify-content: center;
+    position:      relative;
+    transition:    border-color 0.2s, color 0.2s, background 0.2s, transform 0.2s;
+    flex-shrink:   0;
+}
+.btn-campana:hover { border-color: var(--color-accent); color: var(--color-accent); transform: scale(1.08); }
+
+/* Estado: activa */
+.btn-campana.campana-activa {
+    background:   rgba(124,58,237,0.15);
+    border-color: var(--color-accent);
+    color:        var(--color-accent);
+}
+/* Estado: denegada */
+.btn-campana.campana-denegada { opacity: 0.45; cursor: default; }
+
+/* Pulso cuando aún no ha pedido permiso */
+.btn-campana.campana-pendiente::after {
+    content:       '';
+    position:      absolute;
+    top:           2px; right: 2px;
+    width:         9px; height: 9px;
+    border-radius: 50%;
+    background:    var(--color-accent);
+    animation:     campana-ping 1.6s ease-in-out infinite;
+}
+@keyframes campana-ping {
+    0%   { transform: scale(1);   opacity: 1; }
+    70%  { transform: scale(2.2); opacity: 0; }
+    100% { transform: scale(2.2); opacity: 0; }
+}
+
 /* ── Selector de moneda ───────────────────────────────────────────────────── */
 .selector-moneda {
     background:   var(--color-surface);

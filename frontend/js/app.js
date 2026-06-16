@@ -1,7 +1,7 @@
 import { signIn, signUp, signOut, onAuthStateChange,
          resendConfirmationEmail, resetPassword, updatePassword } from './auth.js';
 import { buscarJuegos, obtenerPrecios, obtenerFavoritos, guardarFavorito,
-         eliminarFavorito, obtenerPopulares, obtenerTasas } from './api.js';
+         eliminarFavorito, obtenerPopulares, obtenerTasas, enviarAlertaEmail } from './api.js';
 
 // ── Estado global ─────────────────────────────────────────────────────────────
 let sessionActual    = null;
@@ -80,6 +80,7 @@ const nuevaPass              = document.getElementById('nueva-pass');
 const nuevaPassConfirm       = document.getElementById('nueva-pass-confirm');
 const nuevaMatchFeedback     = document.getElementById('nueva-match-feedback');
 const btnGuardarContrasena   = document.getElementById('btn-guardar-contrasena');
+const btnNotificaciones      = document.getElementById('btn-notificaciones');
 const bannerNotif            = document.getElementById('banner-notif');
 const btnActivarNotif        = document.getElementById('btn-activar-notif');
 const btnRechazarNotif       = document.getElementById('btn-rechazar-notif');
@@ -231,8 +232,10 @@ function actualizarUI(session) {
         appSection.classList.remove('oculto');
         btnLogout.classList.remove('oculto');
         btnPerfil.classList.remove('oculto');
+        btnNotificaciones.classList.remove('oculto');
         selectorMoneda.classList.remove('oculto');
         actualizarAvatar(session.user.email);
+        actualizarCampana();
         cargarFavoritos();
         cargarPopulares();
         inicializarNotificaciones();
@@ -241,6 +244,7 @@ function actualizarUI(session) {
         appSection.classList.add('oculto');
         btnLogout.classList.add('oculto');
         btnPerfil.classList.add('oculto');
+        btnNotificaciones.classList.add('oculto');
         selectorMoneda.classList.add('oculto');
         favoritosEl.innerHTML = '';
         resultadosEl.innerHTML = '';
@@ -422,6 +426,36 @@ async function cargarPerfilFavoritos() {
     }
 }
 
+// ── Campanita ────────────────────────────────────────────────────────────────
+function actualizarCampana() {
+    if (!('Notification' in window)) { btnNotificaciones.classList.add('oculto'); return; }
+    const p = Notification.permission;
+    btnNotificaciones.textContent = p === 'denied' ? '🔕' : '🔔';
+    btnNotificaciones.classList.toggle('campana-activa',  p === 'granted');
+    btnNotificaciones.classList.toggle('campana-denegada', p === 'denied');
+    btnNotificaciones.classList.toggle('campana-pendiente', p === 'default');
+    btnNotificaciones.title = p === 'granted'
+        ? 'Notificaciones activas'
+        : p === 'denied'
+        ? 'Notificaciones bloqueadas — actívalas en la configuración de tu navegador'
+        : 'Activar notificaciones de precio';
+}
+
+btnNotificaciones.addEventListener('click', async () => {
+    const p = Notification.permission;
+    if (p === 'denied') {
+        mostrarError('Las notificaciones están bloqueadas. Actívalas en Configuración → Privacidad de tu navegador.');
+        return;
+    }
+    if (p === 'granted') {
+        mostrarError('Las notificaciones ya están activas. Para desactivarlas ve a la configuración de tu navegador.');
+        return;
+    }
+    const resultado = await Notification.requestPermission().catch(() => 'denied');
+    actualizarCampana();
+    if (resultado === 'granted') verificarAlertas();
+});
+
 // ── Notificaciones ────────────────────────────────────────────────────────────
 async function inicializarNotificaciones() {
     if (!('Notification' in window) || !sessionActual) return;
@@ -462,6 +496,12 @@ async function verificarAlertas() {
                 const opts = { body: `${fav.titulo} está a ${precio(precioMin)} (tu alerta: ${precio(fav.precio_alerta)})`, icon: '/icon.svg' };
                 if (swReg) swReg.showNotification('🎮 ¡Alerta de precio!', opts);
                 else new Notification('🎮 ¡Alerta de precio!', opts);
+                // Enviar email de alerta (silencioso si falla)
+                enviarAlertaEmail(sessionActual.access_token, {
+                    titulo:        fav.titulo,
+                    precio_actual: precioMin.toFixed(2),
+                    precio_alerta: parseFloat(fav.precio_alerta).toFixed(2),
+                }).catch(() => {});
             }
         }
         localStorage.setItem(VERIF_KEY, HOY);

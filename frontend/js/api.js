@@ -45,6 +45,13 @@ export async function obtenerPopulares() {
     return data.resultados;
 }
 
+export async function enviarAlertaEmail(token, payload) {
+    return fetchConAuth(`${API_BASE}/alertas/email`, {
+        method: 'POST',
+        body:   JSON.stringify(payload),
+    }, token);
+}
+
 // Tasas de cambio desde USD (sin API key necesaria)
 let _tasasCache = null;
 export async function obtenerTasas() {

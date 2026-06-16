@@ -1,8 +1,9 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
-import juegosRouter from './routes/juegos.js';
+import juegosRouter    from './routes/juegos.js';
 import favoritosRouter from './routes/favoritos.js';
+import alertasRouter   from './routes/alertas.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,8 +27,9 @@ app.use(express.json());
 
 // ── Rutas ────────────────────────────────────────────────────────────────────
 
-app.use('/api/juegos', juegosRouter);
+app.use('/api/juegos',    juegosRouter);
 app.use('/api/favoritos', favoritosRouter);
+app.use('/api/alertas',   alertasRouter);
 
 // Health check — útil para verificar que el servidor está activo
 app.get('/health', (_req, res) => {
