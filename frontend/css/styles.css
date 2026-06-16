@@ -178,6 +178,38 @@ main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
 
 .btn-full { width: 100%; margin-top: 0.5rem; padding: 0.7rem; font-size: 0.95rem; }
 
+.btn-google {
+    display:         flex;
+    align-items:     center;
+    justify-content: center;
+    gap:             10px;
+    background:      #fff;
+    color:           #3c4043;
+    border:          1px solid #dadce0;
+    border-radius:   var(--radius);
+    font-weight:     600;
+    font-size:       0.9rem;
+    cursor:          pointer;
+    transition:      background 0.15s;
+}
+.btn-google:hover { background: #f8f9fa; }
+
+.auth-divider {
+    display:     flex;
+    align-items: center;
+    gap:         10px;
+    margin:      0.75rem 0;
+    color:       var(--color-muted);
+    font-size:   0.78rem;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content:    '';
+    flex:       1;
+    height:     1px;
+    background: var(--color-border);
+}
+
 /* Pantalla de verificación */
 .verificacion-icono {
     font-size:   3.5rem;

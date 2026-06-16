@@ -1,4 +1,4 @@
-import { signIn, signUp, signOut, onAuthStateChange,
+import { signIn, signUp, signOut, signInWithGoogle, onAuthStateChange,
          resendConfirmationEmail, resetPassword, updatePassword } from './auth.js';
 import { buscarJuegos, obtenerPrecios, obtenerFavoritos, guardarFavorito,
          eliminarFavorito, obtenerPopulares, obtenerTasas, enviarAlertaEmail } from './api.js';
@@ -311,6 +311,16 @@ btnRegister.addEventListener('click', async () => {
     finally { setLoading(btnRegister, false); }
 });
 regPasswordConfirm.addEventListener('keydown', e => { if (e.key==='Enter') btnRegister.click(); });
+
+// ── Google OAuth ───────────────────────────────────────────────────────────────
+document.getElementById('btn-google-login').addEventListener('click', async () => {
+    try { await signInWithGoogle(); }
+    catch (e) { mostrarError(e.message); }
+});
+document.getElementById('btn-google-register').addEventListener('click', async () => {
+    try { await signInWithGoogle(); }
+    catch (e) { mostrarError(e.message); }
+});
 
 // ── Reenvío con cooldown 45s ──────────────────────────────────────────────────
 let primeraVezReenvio = true, timerReenvio = null;

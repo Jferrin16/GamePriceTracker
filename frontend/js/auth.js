@@ -62,6 +62,14 @@ export async function updatePassword(newPassword) {
     if (error) throw new Error(error.message);
 }
 
+export async function signInWithGoogle() {
+    const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options:  { redirectTo: APP_URL },
+    });
+    if (error) throw new Error(error.message);
+}
+
 export async function signOut() {
     const { error } = await supabase.auth.signOut();
     if (error) throw new Error(error.message);
