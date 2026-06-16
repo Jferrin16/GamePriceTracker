@@ -416,7 +416,7 @@ async function cargarPerfilFavoritos() {
             <div class="perfil-fav-item">
                 <div>
                     <span class="perfil-fav-titulo">${escapeHtml(f.titulo)}</span>
-                    <span class="perfil-fav-meta">Alerta: ${precio(f.precio_alerta)} · ${new Date(f.fecha_guardado).toLocaleDateString('es-ES')}</span>
+                    <span class="perfil-fav-meta">Guardado el ${new Date(f.fecha_guardado).toLocaleDateString('es-ES')}</span>
                 </div>
                 <button class="btn-perfil-ver" onclick="window.abrirDeals('${f.juego_api_id}','${jsEscape(f.titulo)}')">Ver precios</button>
             </div>
@@ -684,7 +684,6 @@ function renderizarFavoritos(favs) {
         <div class="card-favorito" id="fav-${f.id}">
             <div class="fav-info">
                 <h4>${escapeHtml(f.titulo)}</h4>
-                <span class="fav-alerta">Alerta: <strong>${precio(f.precio_alerta)}</strong></span>
                 <span class="fav-fecha">${new Date(f.fecha_guardado).toLocaleDateString('es-ES')}</span>
             </div>
             <div class="fav-acciones">
