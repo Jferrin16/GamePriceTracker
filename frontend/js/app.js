@@ -116,6 +116,7 @@ const ERRORES = {
 };
 
 function traducirError(msg) {
+    if (!msg || msg === '{}' || msg === '[object Object]') return 'Ocurrió un error. Intenta nuevamente.';
     for (const [k, v] of Object.entries(ERRORES))
         if (msg.toLowerCase().includes(k.toLowerCase())) return v;
     return msg;
