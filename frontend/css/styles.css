@@ -712,6 +712,19 @@ section h2 {
 /* ── Favoritos con acciones ───────────────────────────────────────────────── */
 .fav-acciones { display: flex; flex-direction: column; gap: 0.4rem; flex-shrink: 0; }
 
+/* ── Aviso de notificación en favoritos ───────────────────────────────────── */
+.fav-aviso {
+    margin: 12px 0 0;
+    padding: 10px 14px;
+    background: rgba(124, 58, 237, 0.08);
+    border: 1px solid rgba(124, 58, 237, 0.25);
+    border-radius: 10px;
+    color: #a78bfa;
+    font-size: 0.82rem;
+    text-align: center;
+    line-height: 1.5;
+}
+
 /* ── Modal de deals ───────────────────────────────────────────────────────── */
 .modal-overlay {
     position:   fixed;

@@ -428,10 +428,17 @@ async function cargarPerfilFavoritos() {
 
 // ── Campanita ────────────────────────────────────────────────────────────────
 function actualizarCampana() {
-    if (!('Notification' in window)) { btnNotificaciones.classList.add('oculto'); return; }
+    if (!('Notification' in window)) {
+        // iOS Safari sin PWA instalada — mostrar igual pero con aviso
+        btnNotificaciones.textContent = '🔔';
+        btnNotificaciones.title = 'Añade la app a tu pantalla de inicio para activar notificaciones';
+        btnNotificaciones.classList.remove('campana-activa', 'campana-denegada');
+        btnNotificaciones.classList.add('campana-pendiente');
+        return;
+    }
     const p = Notification.permission;
     btnNotificaciones.textContent = p === 'denied' ? '🔕' : '🔔';
-    btnNotificaciones.classList.toggle('campana-activa',  p === 'granted');
+    btnNotificaciones.classList.toggle('campana-activa',   p === 'granted');
     btnNotificaciones.classList.toggle('campana-denegada', p === 'denied');
     btnNotificaciones.classList.toggle('campana-pendiente', p === 'default');
     btnNotificaciones.title = p === 'granted'
@@ -442,6 +449,10 @@ function actualizarCampana() {
 }
 
 btnNotificaciones.addEventListener('click', async () => {
+    if (!('Notification' in window)) {
+        mostrarError('En iPhone: toca el botón Compartir (□↑) y selecciona "Añadir a pantalla de inicio" para activar notificaciones.');
+        return;
+    }
     const p = Notification.permission;
     if (p === 'denied') {
         mostrarError('Las notificaciones están bloqueadas. Actívalas en Configuración → Privacidad de tu navegador.');
@@ -680,6 +691,9 @@ async function cargarFavoritos() {
 
 function renderizarFavoritos(favs) {
     if (!favs?.length) { favoritosEl.innerHTML = '<p class="vacio">Aún no tienes juegos favoritos. ¡Busca uno y guárdalo!</p>'; return; }
+    const aviso = favs.length === 1
+        ? '🔔 Te avisaremos cuando este juego baje de precio.'
+        : `🔔 Te avisaremos cuando estos ${favs.length} juegos bajen de precio.`;
     favoritosEl.innerHTML = favs.map(f => `
         <div class="card-favorito" id="fav-${f.id}">
             <div class="fav-info">
@@ -687,11 +701,11 @@ function renderizarFavoritos(favs) {
                 <span class="fav-fecha">${new Date(f.fecha_guardado).toLocaleDateString('es-ES')}</span>
             </div>
             <div class="fav-acciones">
-                <button class="btn-ver-deals-sm" onclick="window.abrirDeals('${f.juego_api_id}','${escapeHtml(f.titulo)}')">Ver precios</button>
+                <button class="btn-ver-deals-sm" onclick="window.abrirDeals('${f.juego_api_id}','${jsEscape(f.titulo)}')">Ver precios</button>
                 <button class="btn-eliminar" onclick="window.eliminarJuego('${f.id}',this)">Eliminar</button>
             </div>
         </div>
-    `).join('');
+    `).join('') + `<p class="fav-aviso">${aviso}</p>`;
 }
 
 window.eliminarJuego = async (id, boton) => {
