@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compara precios de videojuegos en tiempo real y guarda tus alertas de precio.">
+    <title>GamePrice Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+    <header>
+        <h1>🎮 GamePrice Tracker</h1>
+        <div class="header-center">
+            <select id="selector-moneda" class="selector-moneda oculto" aria-label="Moneda">
+                <option value="USD">$ USD</option>
+                <option value="EUR">€ EUR</option>
+                <option value="MXN">$ MXN</option>
+                <option value="ARS">$ ARS</option>
+                <option value="COP">$ COP</option>
+                <option value="CLP">$ CLP</option>
+                <option value="BRL">R$ BRL</option>
+                <option value="GBP">£ GBP</option>
+            </select>
+        </div>
+        <div class="header-user">
+            <button id="btn-perfil" class="btn-avatar oculto" title="Ver perfil"></button>
+            <button id="btn-logout" class="oculto">Cerrar sesión</button>
+        </div>
+    </header>
+
+    <!-- ── Landing ────────────────────────────────────────────────────── -->
+    <section id="seccion-landing">
+        <div class="landing-orb landing-orb-1"></div>
+        <div class="landing-orb landing-orb-2"></div>
+        <div class="landing-orb landing-orb-3"></div>
+
+        <div class="landing-content">
+            <span class="landing-eyebrow">🎮 Seguimiento de precios en tiempo real</span>
+            <h2 class="landing-titulo">
+                Tu juego favorito<br>
+                <span class="landing-titulo-accent">está esperando su mejor precio</span>
+            </h2>
+            <p class="landing-desc">
+                ¿Cuántas veces compraste un juego y días después salió en oferta? <strong>Eso no vuelve a pasar.</strong>
+                Vigilamos precios en más de 35 tiendas digitales y te avisamos en el momento en que bajen.
+                Todos los juegos. Todas las plataformas.
+            </p>
+            <div class="landing-cta">
+                <button id="btn-empezar-registro" class="btn-empezar-principal">Crear cuenta gratis <span>→</span></button>
+                <button id="btn-empezar-login"    class="btn-empezar-secundario">Ya tengo cuenta</button>
+            </div>
+            <div class="landing-stores">
+                <span>Steam</span>
+                <span>Epic Games</span>
+                <span>GOG</span>
+                <span>Humble Store</span>
+                <span>Fanatical</span>
+                <span>+30 tiendas más</span>
+            </div>
+        </div>
+
+        <div class="landing-stats">
+            <div class="landing-stat">
+                <span class="landing-stat-num">35+</span>
+                <span class="landing-stat-label">Tiendas</span>
+            </div>
+            <div class="landing-stat">
+                <span class="landing-stat-num">Miles</span>
+                <span class="landing-stat-label">de juegos</span>
+            </div>
+            <div class="landing-stat">
+                <span class="landing-stat-num">8</span>
+                <span class="landing-stat-label">Monedas</span>
+            </div>
+            <div class="landing-stat">
+                <span class="landing-stat-num">Gratis</span>
+                <span class="landing-stat-label">Para siempre</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ── Auth + App ─────────────────────────────────────────────────── -->
+    <main id="main-contenido" class="oculto">
+        <div id="mensaje-error" class="oculto" role="alert"></div>
+
+        <!-- ── Autenticación ─────────────────────────────────────────── -->
+        <section id="auth-section" class="oculto">
+            <div class="auth-tabs" id="auth-tabs" role="tablist">
+                <button class="auth-tab activo" id="tab-btn-login"    role="tab" aria-selected="true">Iniciar sesión</button>
+                <button class="auth-tab"         id="tab-btn-register" role="tab" aria-selected="false">Crear cuenta</button>
+            </div>
+
+            <div id="panel-login" class="auth-panel">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" placeholder="tu@email.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="login-password" placeholder="Tu contraseña" autocomplete="current-password">
+                        <button type="button" class="btn-toggle-pass" data-target="login-password">👁</button>
+                    </div>
+                </div>
+                <button id="btn-login" class="btn-primary btn-full">Iniciar sesión</button>
+                <p class="link-secundario">
+                    <button type="button" id="btn-ir-recuperacion" class="btn-link">¿Olvidaste tu contraseña?</button>
+                </p>
+            </div>
+
+            <div id="panel-register" class="auth-panel oculto">
+                <div class="form-group">
+                    <label for="reg-email">Email</label>
+                    <input type="email" id="reg-email" placeholder="tu@email.com" autocomplete="email">
+                </div>
+                <div class="form-group">
+                    <label for="reg-password">Contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                        <button type="button" class="btn-toggle-pass" data-target="reg-password">👁</button>
+                    </div>
+                    <div id="password-strength" class="password-strength oculto">
+                        <div class="strength-bar"><span id="strength-fill"></span></div>
+                        <span id="strength-label"></span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="reg-password-confirm">Confirmar contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="reg-password-confirm" placeholder="Repite tu contraseña" autocomplete="new-password">
+                        <button type="button" class="btn-toggle-pass" data-target="reg-password-confirm">👁</button>
+                    </div>
+                    <span id="match-feedback" class="match-feedback oculto"></span>
+                </div>
+                <button id="btn-register" class="btn-primary btn-full">Crear cuenta</button>
+            </div>
+
+            <div id="panel-verificacion" class="auth-panel oculto">
+                <div class="verificacion-icono">📧</div>
+                <h3>Revisa tu correo</h3>
+                <p class="verificacion-desc">Enviamos un enlace a<br><strong id="email-registrado"></strong></p>
+                <p class="verificacion-sub">Haz clic en el enlace para activar tu cuenta y luego inicia sesión.</p>
+                <button id="btn-reenviar" class="btn-secondary btn-full">Reenviar correo</button>
+                <p id="reenvio-feedback" class="reenvio-feedback oculto"></p>
+                <p class="link-secundario" style="margin-top:1rem;">
+                    <button type="button" id="btn-volver-login" class="btn-link">← Volver a iniciar sesión</button>
+                </p>
+            </div>
+
+            <div id="panel-recuperacion" class="auth-panel oculto">
+                <div class="panel-header">
+                    <button type="button" id="btn-back-recuperacion" class="btn-back">←</button>
+                    <h3>Recuperar contraseña</h3>
+                </div>
+                <p class="panel-desc">Te enviaremos un enlace para restablecer tu contraseña.</p>
+                <div class="form-group">
+                    <label for="rec-email">Email</label>
+                    <input type="email" id="rec-email" placeholder="tu@email.com" autocomplete="email">
+                </div>
+                <button id="btn-enviar-recuperacion" class="btn-primary btn-full">Enviar enlace</button>
+            </div>
+
+            <div id="panel-recuperacion-enviada" class="auth-panel oculto">
+                <div class="verificacion-icono">🔑</div>
+                <h3>Enlace enviado</h3>
+                <p class="verificacion-desc">Revisa tu email<br><strong id="email-recuperacion"></strong></p>
+                <p class="verificacion-sub">Haz clic en el enlace del email para crear una nueva contraseña.</p>
+                <button id="btn-volver-login-2" class="btn-secondary btn-full">Volver a iniciar sesión</button>
+            </div>
+
+            <div id="panel-nueva-contrasena" class="auth-panel oculto">
+                <div class="verificacion-icono">🔒</div>
+                <h3>Crea una nueva contraseña</h3>
+                <div class="form-group" style="margin-top:1.25rem;">
+                    <label for="nueva-pass">Nueva contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="nueva-pass" placeholder="Mínimo 6 caracteres" autocomplete="new-password">
+                        <button type="button" class="btn-toggle-pass" data-target="nueva-pass">👁</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nueva-pass-confirm">Confirmar contraseña</label>
+                    <div class="input-wrapper">
+                        <input type="password" id="nueva-pass-confirm" placeholder="Repite la contraseña" autocomplete="new-password">
+                        <button type="button" class="btn-toggle-pass" data-target="nueva-pass-confirm">👁</button>
+                    </div>
+                    <span id="nueva-match-feedback" class="match-feedback oculto"></span>
+                </div>
+                <button id="btn-guardar-contrasena" class="btn-primary btn-full">Guardar contraseña</button>
+            </div>
+        </section>
+
+        <!-- ── App ──────────────────────────────────────────────────── -->
+        <div id="app-section" class="oculto">
+
+            <!-- Notificación de permiso -->
+            <div id="banner-notif" class="banner-notif oculto">
+                <span>🔔 Activa las notificaciones para saber cuándo cambian los precios.</span>
+                <button id="btn-activar-notif" class="btn-notif-si">Activar</button>
+                <button id="btn-rechazar-notif" class="btn-notif-no">Ahora no</button>
+            </div>
+
+            <!-- Búsqueda -->
+            <section>
+                <h2>Buscar juegos</h2>
+                <div class="search-wrapper">
+                    <div class="search-bar">
+                        <input type="text" id="input-busqueda" placeholder="Ej: Half-Life, Cyberpunk, Hollow Knight..."
+                               autocomplete="off" aria-label="Nombre del juego a buscar" aria-autocomplete="list"
+                               aria-controls="autocomplete-lista">
+                        <button id="btn-buscar">Buscar</button>
+                    </div>
+                    <ul id="autocomplete-lista" class="autocomplete-lista oculto" role="listbox"></ul>
+                </div>
+                <div id="resultados" role="list"></div>
+            </section>
+
+            <!-- Favoritos -->
+            <section>
+                <h2>Mis favoritos</h2>
+                <div id="favoritos" role="list"></div>
+            </section>
+
+            <!-- Populares -->
+            <section id="seccion-populares">
+                <div class="seccion-header">
+                    <h2>🔥 Populares ahora</h2>
+                    <span class="seccion-badge">Top 50 · Mejor valorados · PC</span>
+                </div>
+                <div id="populares-grid" role="list"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- ── Overlays (position:fixed, fuera del main) ──────────────────── -->
+    <div id="modal-deals" class="modal-overlay oculto" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div>
+                    <h3 id="modal-titulo"></h3>
+                    <p id="modal-minimo" class="modal-minimo"></p>
+                </div>
+                <button id="modal-cerrar" class="btn-modal-cerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div id="modal-deals-lista" class="modal-deals-lista"></div>
+        </div>
+    </div>
+
+    <div id="panel-perfil" class="perfil-overlay oculto" role="dialog" aria-modal="true" aria-label="Perfil">
+        <div class="perfil-content">
+            <div class="perfil-top">
+                <h2>Mi perfil</h2>
+                <button id="btn-cerrar-perfil" class="btn-modal-cerrar" aria-label="Cerrar perfil">✕</button>
+            </div>
+            <div class="perfil-avatar-wrap">
+                <div id="perfil-avatar" class="perfil-avatar"></div>
+                <div>
+                    <p id="perfil-email" class="perfil-email"></p>
+                    <p id="perfil-desde" class="perfil-desde"></p>
+                </div>
+            </div>
+            <hr class="perfil-divider">
+            <h3 class="perfil-subtitulo">Juegos guardados</h3>
+            <div id="perfil-favoritos-lista" class="perfil-favoritos-lista"></div>
+            <button id="btn-perfil-logout" class="btn-danger btn-full" style="margin-top:1.5rem;">Cerrar sesión</button>
+        </div>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
