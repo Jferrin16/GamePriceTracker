@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="90" fill="#1a1d2e"/>
+  <rect x="56" y="176" width="400" height="220" rx="44" fill="#7c3aed"/>
+  <!-- D-pad izquierdo -->
+  <rect x="116" y="256" width="64" height="20" rx="5" fill="white"/>
+  <rect x="138" y="234" width="20" height="64" rx="5" fill="white"/>
+  <!-- Botones derecha -->
+  <circle cx="352" cy="246" r="16" fill="white"/>
+  <circle cx="388" cy="276" r="16" fill="white"/>
+  <circle cx="352" cy="306" r="16" fill="white"/>
+  <circle cx="316" cy="276" r="16" fill="white"/>
+  <!-- Etiqueta precio centro -->
+  <rect x="194" y="192" width="124" height="52" rx="10" fill="#0f1117"/>
+  <text x="256" y="228" font-size="26" text-anchor="middle" fill="#10b981" font-family="monospace" font-weight="bold">$4.99</text>
+</svg>

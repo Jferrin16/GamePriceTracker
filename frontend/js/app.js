@@ -448,9 +448,9 @@ async function verificarAlertas() {
             if (!data?.ofertas?.length) continue;
             const precioMin = Math.min(...data.ofertas.map(o => parseFloat(o.precio_actual)));
             if (precioMin <= parseFloat(fav.precio_alerta)) {
-                new Notification('🎮 ¡Alerta de precio!', {
-                    body: `${fav.titulo} está a ${precio(precioMin)} (tu alerta: ${precio(fav.precio_alerta)})`,
-                });
+                const opts = { body: `${fav.titulo} está a ${precio(precioMin)} (tu alerta: ${precio(fav.precio_alerta)})`, icon: '/icon.svg' };
+                if (swReg) swReg.showNotification('🎮 ¡Alerta de precio!', opts);
+                else new Notification('🎮 ¡Alerta de precio!', opts);
             }
         }
         localStorage.setItem(VERIF_KEY, HOY);
@@ -712,7 +712,13 @@ function renderizarPopulares(juegos) {
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
+let swReg = null;
+
 (async () => {
+    // Registrar Service Worker (necesario para notificaciones en móvil)
+    if ('serviceWorker' in navigator) {
+        swReg = await navigator.serviceWorker.register('/sw.js').catch(() => null);
+    }
     tasas = await obtenerTasas();
     const expirada = await verificarInactividad();
     if (expirada) actualizarUI(null);
