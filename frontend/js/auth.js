@@ -32,6 +32,7 @@ export async function signUp(email, password) {
         options: { emailRedirectTo: APP_URL },
     });
     if (error) {
+        console.error('[signUp] Supabase error:', JSON.stringify(error));
         const msg = error.message && error.message !== '{}' ? error.message : 'Error al crear la cuenta. Intenta nuevamente.';
         throw new Error(msg);
     }
