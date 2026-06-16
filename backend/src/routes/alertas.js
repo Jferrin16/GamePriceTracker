@@ -1,20 +1,32 @@
 import { Router }     from 'express';
-import nodemailer     from 'nodemailer';
 import { requireAuth } from '../middleware/auth.js';
 
 const router = Router();
 
-const transporter = process.env.GMAIL_USER
-    ? nodemailer.createTransport({
-        host:   'smtp.gmail.com',
-        port:   587,
-        secure: false,
-        auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_APP_PASSWORD },
-    })
-    : null;
+const BREVO_API_KEY = process.env.BREVO_API_KEY;
+const FROM_EMAIL    = process.env.BREVO_FROM || 'jandry.ferrin.olivo@gmail.com';
+const FROM_NAME     = 'GamePrice Tracker';
+
+async function sendEmail({ to, subject, html }) {
+    if (!BREVO_API_KEY) return;
+    const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method:  'POST',
+        headers: { 'accept': 'application/json', 'api-key': BREVO_API_KEY, 'content-type': 'application/json' },
+        body: JSON.stringify({
+            sender:      { name: FROM_NAME, email: FROM_EMAIL },
+            to:          [{ email: to }],
+            subject,
+            htmlContent: html,
+        }),
+    });
+    if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+    }
+}
 
 router.post('/email', requireAuth, async (req, res) => {
-    if (!transporter) return res.status(200).json({ ok: true, info: 'Email desactivado (sin GMAIL_USER)' });
+    if (!BREVO_API_KEY) return res.status(200).json({ ok: true, info: 'Email desactivado (sin BREVO_API_KEY)' });
 
     const { titulo, precio_actual, precio_alerta } = req.body;
     const email = req.user.email;
@@ -63,17 +75,10 @@ router.post('/email', requireAuth, async (req, res) => {
   </td></tr>
 </table>
 </body></html>`;
-        try {
-            await transporter.sendMail({
-                from:    `GamePrice Tracker <${process.env.GMAIL_USER}>`,
-                to:      email,
-                subject: '🔔 Notificaciones de precio activadas',
-                html:    htmlBienvenida,
-            });
-        } catch (err) {
-            console.error('[alertas/bienvenida]', err.message);
-        }
-        return res.status(200).json({ ok: true });
+        res.status(200).json({ ok: true });
+        sendEmail({ to: email, subject: '🔔 Notificaciones de precio activadas', html: htmlBienvenida })
+            .catch(err => console.error('[alertas/bienvenida]', err.message));
+        return;
     }
 
     if (!precio_actual) {
@@ -141,18 +146,9 @@ router.post('/email', requireAuth, async (req, res) => {
 </table>
 </body></html>`;
 
-    try {
-        await transporter.sendMail({
-            from:    `GamePrice Tracker <${process.env.GMAIL_USER}>`,
-            to:      email,
-            subject: `🎯 ¡"${titulo}" bajó de precio!`,
-            html,
-        });
-        return res.status(200).json({ ok: true });
-    } catch (err) {
-        console.error('[alertas/email]', err.message);
-        return res.status(500).json({ error: 'No se pudo enviar el email' });
-    }
+    res.status(200).json({ ok: true });
+    sendEmail({ to: email, subject: `🎯 ¡"${titulo}" bajó de precio!`, html })
+        .catch(err => console.error('[alertas/email]', err.message));
 });
 
 export default router;
