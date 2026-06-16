@@ -1,16 +1,12 @@
 [build]
   publish = "frontend"
 
-# ── Proxy /api/* → backend en Render ─────────────────────────────────────────
-# PASO OBLIGATORIO: reemplaza la URL de abajo con tu URL real de Render
-# después de desplegar el backend (ej: https://gameprice-api.onrender.com)
 [[redirects]]
   from   = "/api/*"
   to     = "https://gamepricetracker.onrender.com/api/:splat"
   status = 200
   force  = true
 
-# Fallback para que la página siempre cargue index.html
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
