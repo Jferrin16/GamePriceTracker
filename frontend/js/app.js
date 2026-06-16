@@ -235,7 +235,7 @@ function actualizarUI(session) {
         actualizarAvatar(session.user.email);
         cargarFavoritos();
         cargarPopulares();
-        mostrarBannerNotificacion();
+        inicializarNotificaciones();
         verificarAlertas();
     } else if (!session) {
         appSection.classList.add('oculto');
@@ -423,15 +423,26 @@ async function cargarPerfilFavoritos() {
 }
 
 // ── Notificaciones ────────────────────────────────────────────────────────────
-function mostrarBannerNotificacion() {
-    if (!('Notification' in window)) return;
-    if (Notification.permission === 'default') bannerNotif.classList.remove('oculto');
+async function inicializarNotificaciones() {
+    if (!('Notification' in window) || !sessionActual) return;
+    if (Notification.permission === 'granted') { verificarAlertas(); return; }
+    if (Notification.permission === 'denied')  return;
+
+    // Intentar pedir permiso directamente (funciona en desktop y algunos móviles)
+    const perm = await Notification.requestPermission().catch(() => 'default');
+    if (perm === 'granted') {
+        bannerNotif.classList.add('oculto');
+        verificarAlertas();
+    } else {
+        // Requiere gesto del usuario (móvil) → mostrar banner
+        bannerNotif.classList.remove('oculto');
+    }
 }
 
 btnActivarNotif.addEventListener('click', async () => {
     bannerNotif.classList.add('oculto');
-    await Notification.requestPermission();
-    if (Notification.permission==='granted') verificarAlertas();
+    const perm = await Notification.requestPermission().catch(() => 'denied');
+    if (perm === 'granted') verificarAlertas();
 });
 btnRechazarNotif.addEventListener('click', () => bannerNotif.classList.add('oculto'));
 
