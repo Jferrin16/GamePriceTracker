@@ -12,6 +12,7 @@ let monedaActual     = 'USD';
 const VISITA_KEY          = 'gameprice_ultima_visita';
 const POPULARES_CACHE_KEY = 'gameprice_populares';
 const VERIF_KEY           = 'gameprice_ultima_verif';
+const NOTIF_BIENVENIDA_KEY = 'gameprice_notif_bienvenida';
 const DOS_SEMANAS_MS      = 14 * 24 * 60 * 60 * 1000;
 
 const SIMBOLOS = { USD:'$', EUR:'€', MXN:'$', ARS:'$', COP:'$', CLP:'$', BRL:'R$', GBP:'£' };
@@ -81,9 +82,6 @@ const nuevaPassConfirm       = document.getElementById('nueva-pass-confirm');
 const nuevaMatchFeedback     = document.getElementById('nueva-match-feedback');
 const btnGuardarContrasena   = document.getElementById('btn-guardar-contrasena');
 const btnNotificaciones      = document.getElementById('btn-notificaciones');
-const bannerNotif            = document.getElementById('banner-notif');
-const btnActivarNotif        = document.getElementById('btn-activar-notif');
-const btnRechazarNotif       = document.getElementById('btn-rechazar-notif');
 const inputBusqueda          = document.getElementById('input-busqueda');
 const autocompleteLista      = document.getElementById('autocomplete-lista');
 const btnBuscar              = document.getElementById('btn-buscar');
@@ -123,8 +121,15 @@ function traducirError(msg) {
 }
 function mostrarError(msg) {
     mensajeError.textContent = traducirError(msg);
+    mensajeError.className = 'mensaje-error';
     mensajeError.classList.remove('oculto');
     setTimeout(() => mensajeError.classList.add('oculto'), 6000);
+}
+function mostrarInfo(msg) {
+    mensajeError.textContent = msg;
+    mensajeError.className = 'mensaje-error mensaje-info';
+    mensajeError.classList.remove('oculto');
+    setTimeout(() => mensajeError.classList.add('oculto'), 5000);
 }
 function setLoading(btn, loading) {
     btn.disabled = loading;
@@ -239,8 +244,8 @@ function actualizarUI(session) {
         actualizarCampana();
         cargarFavoritos();
         cargarPopulares();
-        inicializarNotificaciones();
-        verificarAlertas();
+        verificarPreciosYEnviarEmail();
+        enviarEmailBienvenidaNotif(session.user.email);
     } else if (!session) {
         appSection.classList.add('oculto');
         btnLogout.classList.add('oculto');
@@ -439,90 +444,50 @@ async function cargarPerfilFavoritos() {
 
 // ── Campanita ────────────────────────────────────────────────────────────────
 function actualizarCampana() {
-    if (!('Notification' in window)) {
-        // iOS Safari sin PWA instalada — mostrar igual pero con aviso
-        btnNotificaciones.textContent = '🔔';
-        btnNotificaciones.title = 'Añade la app a tu pantalla de inicio para activar notificaciones';
-        btnNotificaciones.classList.remove('campana-activa', 'campana-denegada');
-        btnNotificaciones.classList.add('campana-pendiente');
-        return;
-    }
-    const p = Notification.permission;
-    btnNotificaciones.textContent = p === 'denied' ? '🔕' : '🔔';
-    btnNotificaciones.classList.toggle('campana-activa',   p === 'granted');
-    btnNotificaciones.classList.toggle('campana-denegada', p === 'denied');
-    btnNotificaciones.classList.toggle('campana-pendiente', p === 'default');
-    btnNotificaciones.title = p === 'granted'
-        ? 'Notificaciones activas'
-        : p === 'denied'
-        ? 'Notificaciones bloqueadas — actívalas en la configuración de tu navegador'
-        : 'Activar notificaciones de precio';
+    btnNotificaciones.textContent = '🔔';
+    btnNotificaciones.classList.add('campana-activa');
+    btnNotificaciones.classList.remove('campana-denegada', 'campana-pendiente');
+    btnNotificaciones.title = 'Notificaciones por email activas';
 }
 
-btnNotificaciones.addEventListener('click', async () => {
-    if (!('Notification' in window)) {
-        mostrarError('En iPhone: toca el botón Compartir (□↑) y selecciona "Añadir a pantalla de inicio" para activar notificaciones.');
-        return;
-    }
-    const p = Notification.permission;
-    if (p === 'denied') {
-        mostrarError('Las notificaciones están bloqueadas. Actívalas en Configuración → Privacidad de tu navegador.');
-        return;
-    }
-    if (p === 'granted') {
-        mostrarError('Las notificaciones ya están activas. Para desactivarlas ve a la configuración de tu navegador.');
-        return;
-    }
-    const resultado = await Notification.requestPermission().catch(() => 'denied');
-    actualizarCampana();
-    if (resultado === 'granted') verificarAlertas();
+btnNotificaciones.addEventListener('click', () => {
+    mostrarInfo('✉️ Te enviaremos un correo cuando alguno de tus juegos favoritos baje de precio.');
 });
 
-// ── Notificaciones ────────────────────────────────────────────────────────────
-async function inicializarNotificaciones() {
-    if (!('Notification' in window) || !sessionActual) return;
-    if (Notification.permission === 'granted') { verificarAlertas(); return; }
-    if (Notification.permission === 'denied')  return;
-
-    // Intentar pedir permiso directamente (funciona en desktop y algunos móviles)
-    const perm = await Notification.requestPermission().catch(() => 'default');
-    if (perm === 'granted') {
-        bannerNotif.classList.add('oculto');
-        verificarAlertas();
-    } else {
-        // Requiere gesto del usuario (móvil) → mostrar banner
-        bannerNotif.classList.remove('oculto');
-    }
+// ── Email de bienvenida a notificaciones (se envía solo una vez) ──────────────
+async function enviarEmailBienvenidaNotif(email) {
+    if (!sessionActual) return;
+    const enviado = localStorage.getItem(NOTIF_BIENVENIDA_KEY + '_' + email);
+    if (enviado) return;
+    try {
+        await enviarAlertaEmail(sessionActual.access_token, {
+            titulo:        '__bienvenida__',
+            precio_actual: '0',
+            precio_alerta: '0',
+        });
+        localStorage.setItem(NOTIF_BIENVENIDA_KEY + '_' + email, '1');
+    } catch { /* silencioso */ }
 }
 
-btnActivarNotif.addEventListener('click', async () => {
-    bannerNotif.classList.add('oculto');
-    const perm = await Notification.requestPermission().catch(() => 'denied');
-    if (perm === 'granted') verificarAlertas();
-});
-btnRechazarNotif.addEventListener('click', () => bannerNotif.classList.add('oculto'));
-
-async function verificarAlertas() {
-    if (!('Notification' in window) || Notification.permission!=='granted') return;
+// ── Verificación de precios y envío de email ──────────────────────────────────
+async function verificarPreciosYEnviarEmail() {
     if (!sessionActual) return;
     const ultima = localStorage.getItem(VERIF_KEY);
-    if (ultima===HOY) return;
+    if (ultima === HOY) return;
 
     try {
         const favs = await obtenerFavoritos(sessionActual.access_token);
         for (const fav of favs) {
+            const precioGuardado = parseFloat(fav.precio_alerta);
+            if (!precioGuardado || precioGuardado <= 0) continue;
             const data = await obtenerPrecios(fav.juego_api_id).catch(() => null);
             if (!data?.ofertas?.length) continue;
             const precioMin = Math.min(...data.ofertas.map(o => parseFloat(o.precio_actual)));
-            if (precioMin <= parseFloat(fav.precio_alerta)) {
-                const opts = { body: `${fav.titulo} está a ${precio(precioMin)} (tu alerta: ${precio(fav.precio_alerta)})`, icon: '/icon.svg' };
-                if (swReg) swReg.showNotification('🎮 ¡Alerta de precio!', opts);
-                else new Notification('🎮 ¡Alerta de precio!', opts);
-                // Enviar email de alerta (silencioso si falla)
+            if (precioMin < precioGuardado * 0.95) {
                 enviarAlertaEmail(sessionActual.access_token, {
                     titulo:        fav.titulo,
                     precio_actual: precioMin.toFixed(2),
-                    precio_alerta: parseFloat(fav.precio_alerta).toFixed(2),
+                    precio_alerta: precioGuardado.toFixed(2),
                 }).catch(() => {});
             }
         }
@@ -618,7 +583,7 @@ function renderizarResultados(juegos) {
                     <button class="btn-ver-deals" onclick="window.abrirDeals('${j.gameID}','${jsEscape(j.titulo)}')">
                         🏪 Ver precios por tienda
                     </button>
-                    <button class="btn-guardar" onclick="window.guardarJuego('${j.gameID}','${jsEscape(j.titulo)}',this)">
+                    <button class="btn-guardar" onclick="window.guardarJuego('${j.gameID}','${jsEscape(j.titulo)}','${j.precio_mas_bajo}',this)">
                         + Favoritos
                     </button>
                 </div>
@@ -681,11 +646,11 @@ modalDeals.addEventListener('click', e => { if (e.target===modalDeals) cerrarMod
 document.addEventListener('keydown', e => { if (e.key==='Escape') { cerrarModal(); panelPerfil.classList.add('oculto'); } });
 
 // ── Favoritos ─────────────────────────────────────────────────────────────────
-window.guardarJuego = async (gameID, titulo, boton) => {
+window.guardarJuego = async (gameID, titulo, precioActual, boton) => {
     if (!sessionActual) return mostrarError('Debes iniciar sesión para guardar favoritos.');
     setLoading(boton, true);
     try {
-        await guardarFavorito(sessionActual.access_token, { juego_api_id: gameID, titulo, precio_alerta: '0.00' });
+        await guardarFavorito(sessionActual.access_token, { juego_api_id: gameID, titulo, precio_alerta: precioActual || '0.00' });
         boton.textContent = '✓ Guardado'; boton.disabled = true;
         cargarFavoritos();
     } catch (e) { mostrarError(e.message); setLoading(boton, false); }
@@ -777,7 +742,7 @@ function renderizarPopulares(juegos) {
                     <button class="btn-ver-deals" onclick="window.abrirDeals('${j.gameID}','${jsEscape(j.titulo)}')">
                         🏪 Ver tiendas
                     </button>
-                    <button class="btn-guardar" onclick="window.guardarJuego('${j.gameID}','${jsEscape(j.titulo)}',this)">
+                    <button class="btn-guardar" onclick="window.guardarJuego('${j.gameID}','${jsEscape(j.titulo)}','${j.precio_oferta}',this)">
                         + Favoritos
                     </button>
                 </div>
@@ -787,12 +752,9 @@ function renderizarPopulares(juegos) {
 }
 
 // ── Bootstrap ─────────────────────────────────────────────────────────────────
-let swReg = null;
-
 (async () => {
-    // Registrar Service Worker (necesario para notificaciones en móvil)
     if ('serviceWorker' in navigator) {
-        swReg = await navigator.serviceWorker.register('/sw.js').catch(() => null);
+        navigator.serviceWorker.register('/sw.js').catch(() => null);
     }
     tasas = await obtenerTasas();
     const expirada = await verificarInactividad();
