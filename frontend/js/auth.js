@@ -32,7 +32,8 @@ export async function signUp(email, password) {
         options: { emailRedirectTo: APP_URL },
     });
     if (error) {
-        throw new Error(JSON.stringify(error));
+        const msg = error.message && error.message !== '{}' ? error.message : 'Error al enviar el email de verificación. Espera unos minutos e intenta nuevamente.';
+        throw new Error(msg);
     }
     return data; // data.session es null cuando la confirmación de email está activa
 }
