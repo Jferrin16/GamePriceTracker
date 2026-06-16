@@ -3,8 +3,8 @@ import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 const SUPABASE_URL      = 'https://ydrtvlwahrupuftckhri.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlkcnR2bHdhaHJ1cHVmdGNraHJpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE1NTQ5NDgsImV4cCI6MjA5NzEzMDk0OH0.UMpnFCku8ntcSrpy3Mr6rr5G4Ejer4q5K2JD_hg5o88';
 
-// URL base de la app — Supabase usa esto como destino de los emails de auth
-const APP_URL = window.location.origin + window.location.pathname;
+const IS_LOCAL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const APP_URL  = IS_LOCAL ? window.location.origin : 'https://gamepricetrackerr.netlify.app';
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: {
